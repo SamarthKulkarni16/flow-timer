@@ -33,11 +33,6 @@ jobs:
           echo "android.useAndroidX=true" > gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
-          - name: Create gradle.properties
-        run: |
-          echo "android.useAndroidX=true" > gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-          echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
       - name: Create env file with API key
         run: echo "GEMINI_API_KEY=${{ AIzaSyDLzRMuTPfxbSgOBjcb3AV1ezZYQgvMvI4 }}" > .env.example
       - name: Make gradlew executable
