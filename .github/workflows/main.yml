@@ -26,11 +26,9 @@ jobs:
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
           PROPS
-      - name: Make gradlew executable
-      - name: Create .env.example
+      - name: Create env file
         run: touch .env.example
       - name: Make gradlew executable
-        run: chmod +x ./gradlew
         run: chmod +x ./gradlew
       - name: Build Debug APK
         run: ./gradlew :app:assembleDebug
