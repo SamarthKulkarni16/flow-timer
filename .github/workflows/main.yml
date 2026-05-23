@@ -28,6 +28,11 @@ jobs:
           PROPS
       - name: Create env file
         run: touch .env.example
+      - name: Create gradle.properties
+        run: |
+          echo "android.useAndroidX=true" > gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
       - name: Make gradlew executable
         run: chmod +x ./gradlew
       - name: Build Debug APK
