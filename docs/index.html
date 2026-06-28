@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Flow Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --ink: #FFFFFF;
+    --line: #2A2A2A;
+    --dim: #8A8A8A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    height: 100dvh;
+    width: 100%;
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6vh 6vw 5vh;
+    text-align: center;
+  }
+
+  /* ---- top spacer / breathing room ---- */
+  .top-space { flex: 0 0 auto; height: 2vh; }
+
+  /* ---- timer ring, mid-upper section ---- */
+  .timer-wrap {
+    position: relative;
+    width: clamp(150px, 42vh, 230px);
+    height: clamp(150px, 42vh, 230px);
+    flex: 0 0 auto;
+  }
+
+  .timer-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transform-origin: center;
+  }
+
+  .timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timer-clock {
+    font-size: clamp(30px, 8vh, 46px);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  /* ---- title ---- */
+  .title {
+    font-family: 'Rye', serif;
+    font-size: clamp(28px, 7.5vh, 44px);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    flex: 0 0 auto;
+    margin-top: 1.5vh;
+  }
+
+  /* ---- description, formatted as a short stacked sequence ---- */
+  .desc {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55em;
+    max-width: 320px;
+    margin-top: 1vh;
+  }
+
+  .desc .step {
+    font-size: clamp(11px, 2.6vh, 13px);
+    line-height: 1.4;
+    color: var(--dim);
+    letter-spacing: 0.01em;
+  }
+
+  .desc .rule {
+    width: 28px;
+    height: 1px;
+    background: var(--line);
+    margin: 0.3em auto;
+  }
+
+  .desc .emphasis {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: clamp(11.5px, 2.7vh, 13.5px);
+  }
+
+  /* ---- download button ---- */
+  .download-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: min(280px, 70vw);
+    height: clamp(48px, 7.5vh, 56px);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(14px, 2.6vh, 16px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+    margin-top: 1.5vh;
+  }
+
+  .download-btn:active { opacity: 0.75; }
+
+  .download-btn:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ring-progress { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-space"></div>
+
+  <div class="timer-wrap">
+    <svg class="timer-ring" viewBox="0 0 200 200">
+      <circle class="ring-track" cx="100" cy="100" r="92"></circle>
+      <circle id="ringProgress" class="ring-progress" cx="100" cy="100" r="92" pathLength="1"></circle>
+    </svg>
+    <div class="timer-display">
+      <div class="timer-clock" id="clock">25:00</div>
+    </div>
+  </div>
+
+  <h1 class="title">Flow Timer</h1>
+
+  <div class="desc">
+    <div class="step">Name your task, enter time, enter amount of tasks, focus.</div>
+    <div class="rule"></div>
+    <div class="step emphasis">Tap anywhere to mark task complete.</div>
+    <div class="step">One tap = one task completed.</div>
+    <div class="rule"></div>
+    <div class="step">Triple tap blank home screen to see history.</div>
+  </div>
+
+  <a class="download-btn" href="https://github.com/SamarthKulkarni16/flow-timer/releases/download/v1.0.0/app-release.apk" download>
+    Download
+  </a>
+
+<script>
+  // Ambient countdown ring — purely decorative, loops 25:00 -> 0:00
+  const TOTAL_SECONDS = 25 * 60;
+  let secondsLeft = TOTAL_SECONDS;
+
+  const clockEl = document.getElementById('clock');
+  const ring = document.getElementById('ringProgress');
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  function render() {
+    clockEl.textContent = formatTime(secondsLeft);
+    const fraction = secondsLeft / TOTAL_SECONDS;
+    ring.style.strokeDashoffset = 1 * (1 - fraction);
+  }
+
+  render();
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced) {
+    setInterval(() => {
+      secondsLeft -= 5;
+      if (secondsLeft <= 0) secondsLeft = TOTAL_SECONDS;
+      render();
+    }, 480);
+  }
+</script>
+
+</body>
+</html>
