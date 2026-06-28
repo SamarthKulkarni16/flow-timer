@@ -12,132 +12,58 @@
     --bg: #0a0a0a;
     --ink: #f0ede8;
     --dim: #555550;
-    --line: #222220;
     --mid: #888882;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    background: var(--bg);
-    color: var(--ink);
-    height: 100%;
-    overflow: hidden;
-  }
+  html, body { background: var(--bg); color: var(--ink); height: 100%; overflow: hidden; }
   body {
-    height: 100dvh;
-    width: 100%;
+    height: 100dvh; width: 100%;
     font-family: 'IBM Plex Mono', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    padding: 5vh 8vw;
-    text-align: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-evenly;
+    padding: 5vh 8vw; text-align: center;
   }
-
   .title {
-    font-family: 'IBM Plex Mono', monospace;
     font-size: clamp(14px, 3.5vw, 18px);
-    font-weight: 300;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--mid);
-    line-height: 1;
+    font-weight: 300; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--mid); line-height: 1;
   }
-
   .timer-wrap {
     position: relative;
     width: clamp(130px, 34vw, 175px);
     height: clamp(130px, 34vw, 175px);
     flex-shrink: 0;
   }
-
-  .timer-ring {
-    width: 100%;
-    height: 100%;
-  }
-
-  .ring-track {
-    fill: none;
-    stroke: var(--line);
-    stroke-width: 3.5;
-  }
-
-  .ring-progress {
-    fill: none;
-    stroke: #ffffff;
-    stroke-width: 3.5;
-    stroke-linecap: butt;
-    transform: rotate(-90deg);
-    transform-origin: center;
-  }
-
+  canvas { width: 100%; height: 100%; }
   .timer-display {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
   }
-
   .timer-clock {
-    font-family: 'IBM Plex Mono', monospace;
     font-size: clamp(26px, 7vw, 34px);
-    font-weight: 300;
-    letter-spacing: 0.04em;
-    color: var(--ink);
-    line-height: 1;
-    text-align: center;
+    font-weight: 300; letter-spacing: 0.04em;
+    color: var(--ink); line-height: 1;
   }
-
   .desc {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
-    max-width: 255px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1em; max-width: 255px;
   }
-
   .desc .step {
     font-size: clamp(10px, 2.6vw, 11.5px);
-    line-height: 1.8;
-    color: var(--dim);
-    letter-spacing: 0.05em;
+    line-height: 1.8; color: var(--dim); letter-spacing: 0.05em;
   }
-
-  .desc .accent {
-    color: var(--mid);
-  }
-
-  .desc hr {
-    border: none;
-    width: 18px;
-    height: 1px;
-    background: var(--line);
-  }
-
+  .desc .accent { color: var(--mid); }
+  .desc hr { border: none; width: 18px; height: 1px; background: #222220; }
   .download-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: min(240px, 65vw);
-    height: clamp(42px, 6vh, 50px);
-    background: transparent;
-    color: var(--mid);
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 300;
-    font-size: clamp(10px, 2.6vw, 12px);
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    text-decoration: none;
-    transition: border-color 0.2s, color 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: min(240px, 65vw); height: clamp(42px, 6vh, 50px);
+    background: transparent; color: var(--mid);
+    font-weight: 300; font-size: clamp(10px, 2.6vw, 12px);
+    letter-spacing: 0.25em; text-transform: uppercase;
+    border: 1px solid #222220; border-radius: 2px;
+    text-decoration: none; transition: border-color 0.2s, color 0.2s;
   }
-
-  .download-btn:active {
-    border-color: var(--mid);
-    color: var(--ink);
-  }
+  .download-btn:active { border-color: var(--mid); color: var(--ink); }
 </style>
 </head>
 <body>
@@ -145,12 +71,9 @@
   <div class="title">Flow Timer</div>
 
   <div class="timer-wrap">
-    <svg class="timer-ring" viewBox="0 0 200 200">
-      <circle class="ring-track" cx="100" cy="100" r="88"></circle>
-      <circle id="ringProgress" class="ring-progress" cx="100" cy="100" r="88"></circle>
-    </svg>
+    <canvas id="ringCanvas" width="300" height="300"></canvas>
     <div class="timer-display">
-      <div class="timer-clock" id="clock">20:00</div>
+      <div class="timer-clock" id="clock">10:00</div>
     </div>
   </div>
 
@@ -167,15 +90,12 @@
   </a>
 
 <script>
-  const TOTAL_SECONDS = 20 * 60;
+  const TOTAL_SECONDS = 10 * 60;
   let secondsLeft = TOTAL_SECONDS;
   const clockEl = document.getElementById('clock');
-  const ring = document.getElementById('ringProgress');
-
-  const R = 88;
-  const CIRCUMFERENCE = 2 * Math.PI * R;
-  ring.setAttribute('stroke-dasharray', CIRCUMFERENCE);
-  ring.setAttribute('stroke-dashoffset', 0);
+  const canvas = document.getElementById('ringCanvas');
+  const ctx = canvas.getContext('2d');
+  const cx = 150, cy = 150, radius = 132, lineWidth = 5.5;
 
   function formatTime(s) {
     const m = Math.floor(s / 60);
@@ -183,11 +103,29 @@
     return m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
+  function drawRing() {
+    ctx.clearRect(0, 0, 300, 300);
+
+    const fraction = secondsLeft / TOTAL_SECONDS;
+    if (fraction <= 0) return;
+
+    // Arc: starts at top (−π/2), goes anticlockwise (counterclockwise)
+    // top → left → bottom → right → top
+    // Canvas anticlockwise: startAngle = -π/2, endAngle = -π/2 - fraction*2π, anticlockwise=true
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + fraction * 2 * Math.PI;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, endAngle, false); // false = clockwise
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+  }
+
   function render() {
     clockEl.textContent = formatTime(secondsLeft);
-    const elapsed = TOTAL_SECONDS - secondsLeft;
-    const offset = (elapsed / TOTAL_SECONDS) * CIRCUMFERENCE;
-    ring.setAttribute('stroke-dashoffset', offset);
+    drawRing();
   }
 
   render();
