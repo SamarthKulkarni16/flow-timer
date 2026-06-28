@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "flow-timer"
-include(":app")
+include(":app") 
